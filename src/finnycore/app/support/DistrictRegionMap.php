@@ -2,41 +2,67 @@
 
 namespace App\Support;
 
-/**
- * Maps a borrower's district to a coarser region grouping.
- *
- * Kept as a static lookup rather than a database table for MVP speed.
- * The mapping is intentionally small and easy to extend — add districts
- * as real borrowers register from them. Any district not listed falls
- * back to 'unspecified' rather than throwing, since we never want a
- * missing map entry to block registration or profile display.
- */
 class DistrictRegionMap
 {
-    private const MAP = [
-        // Central
-        'kampala' => 'central', 'wakiso' => 'central', 'mukono' => 'central',
-        'mpigi' => 'central', 'luwero' => 'central', 'mubende' => 'central',
-
-        // Eastern
-        'jinja' => 'eastern', 'mbale' => 'eastern', 'busia' => 'eastern',
-        'tororo' => 'eastern', 'soroti' => 'eastern', 'iganga' => 'eastern',
-
-        // Northern
-        'gulu' => 'northern', 'lira' => 'northern', 'arua' => 'northern',
-        'kitgum' => 'northern', 'moroto' => 'northern',
-
-        // Western
-        'mbarara' => 'western', 'fort portal' => 'western', 'kabale' => 'western',
-        'hoima' => 'western', 'kasese' => 'western', 'masaka' => 'western',
-    ];
-
+    /**
+     * Minimal district -> region mapping.
+     *
+     * If a district is missing/unknown, we return 'unknown' so that
+     * borrower registration/profile APIs never 500 due to this mapping.
+     */
     public static function regionFor(?string $district): string
     {
-        if (! $district) {
-            return 'unspecified';
+        if ($district === null) {
+            return 'unknown';
         }
 
-        return self::MAP[strtolower(trim($district))] ?? 'unspecified';
+        $district = trim(mb_strtolower($district));
+
+        if ($district === '') {
+            return 'unknown';
+        }
+
+        // NOTE: Populate/extend this mapping as your product data requires.
+        // Keys are lowercased district names.
+        $map = [
+            // Kampala
+            'kampala' => 'central',
+            'kawempe' => 'central',
+            'rubaga' => 'central',
+            'makindye' => 'central',
+            'nakawa' => 'central',
+            'lubaga' => 'central',
+
+            // Central (examples)
+            'wakiso' => 'central',
+            'mukono' => 'central',
+            'mpigi' => 'central',
+            'luwero' => 'central',
+            'nabisunsa' => 'central',
+
+            // Eastern (examples)
+            'jinja' => 'eastern',
+            'kamuli' => 'eastern',
+            'tororo' => 'eastern',
+            'mbale' => 'eastern',
+            'soroti' => 'eastern',
+            'kumi' => 'eastern',
+
+            // Northern (examples)
+            'gulu' => 'northern',
+            'otum' => 'northern',
+            'moyo' => 'northern',
+            'madi' => 'northern',
+            'arua' => 'northern',
+
+            // Western (examples)
+            'mbarara' => 'western',
+            'kasese' => 'western',
+            'fortportal' => 'western',
+            'kabarole' => 'western',
+        ];
+
+        return $map[$district] ?? 'unknown';
     }
 }
+

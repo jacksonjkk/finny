@@ -98,8 +98,8 @@ class Borrower extends Authenticatable
         return $this->hasMany(\App\Models\LoanApplication::class);
     }
 
-    public function complaints()
-    {
-        return $this->hasMany(\App\Models\Complaint::class);
-    }
+    // public function complaints()
+    // {
+    //     return $this->hasMany(\App\Models\Complaint::class);
+    // }
 }
