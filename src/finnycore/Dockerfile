@@ -1,4 +1,7 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
+
+ENV COMPOSER_NO_INTERACTION=1 \
+    COMPOSER_MEMORY_LIMIT=-1
 
 RUN apk add --no-cache \
     postgresql-dev \
@@ -6,7 +9,11 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libwebp-dev \
     oniguruma-dev \
-    && docker-php-ext-install pdo pdo_pgsql gd mbstring
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install pdo pdo_pgsql gd mbstring bcmath xml zip pcntl
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -18,7 +25,11 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 COPY . .
 RUN composer dump-autoload --optimize
 
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN mkdir -p storage/app/public storage/app/private \
+        storage/framework/cache/data storage/framework/sessions \
+        storage/framework/testing storage/framework/views \
+        storage/logs \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
